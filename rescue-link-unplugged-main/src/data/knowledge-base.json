@@ -1,0 +1,105 @@
+[
+    {
+        "topic": "Earthquake survival",
+        "keywords": [
+            "earthquake",
+            "shake",
+            "quake",
+            "tremor",
+            "rubble",
+            "trapped"
+        ],
+        "content": "During an earthquake: DROP, COVER, and HOLD ON. Stay away from windows and unsecured furniture. If trapped under rubble: Do not light a match. Cover your mouth with clothing. Tap on a pipe or wall so rescuers can locate you. Use a whistle if available. Shout only as a last resort to avoid inhaling dangerous amounts of dust."
+    },
+    {
+        "topic": "Flood safety",
+        "keywords": [
+            "flood",
+            "water",
+            "drown",
+            "current",
+            "swept",
+            "flash flood"
+        ],
+        "content": "During a flood: Move to higher ground immediately. Do not walk, swim, or drive through floodwaters (6 inches of moving water can knock you down, and 1 foot of water can sweep a vehicle away). Stay off bridges over fast-moving water. Evacuate if instructed to do so. Avoid downed power lines."
+    },
+    {
+        "topic": "Fire escape",
+        "keywords": [
+            "fire",
+            "smoke",
+            "burn",
+            "escape",
+            "flame",
+            "heat"
+        ],
+        "content": "During a fire: Get low and go under the smoke to your exit. Heavy smoke and deadly gases collect along the ceiling. Check doors for heat before opening; if a door is hot, find an alternate escape route. If your clothes catch fire, STOP, DROP, and ROLL. Once outside, stay outside and call emergency services."
+    },
+    {
+        "topic": "First aid",
+        "keywords": [
+            "first aid",
+            "bleeding",
+            "wound",
+            "cut",
+            "wound",
+            "blood",
+            "injury",
+            "injured badly"
+        ],
+        "content": "First aid for bleeding: Apply firm, direct pressure to the wound with a clean cloth or sterile dressing. Maintain pressure until the bleeding stops. If blood soaks through, do not remove the cloth—put another one directly on top and continue applying pressure. Elevate the injured area if possible. For severe, uncontrollable bleeding from a limb, apply a tourniquet 2 to 3 inches above the wound."
+    },
+    {
+        "topic": "CPR",
+        "keywords": [
+            "cpr",
+            "breathing",
+            "heart",
+            "unconscious",
+            "pulseless",
+            "revive",
+            "can't breathe"
+        ],
+        "content": "CPR (Cardiopulmonary Resuscitation): For an unconscious person who is not breathing normally, call emergency services. If you are not trained, perform hands-only CPR: push hard and fast in the center of the chest (about 100-120 compressions per minute, at a depth of at least 2 inches). If trained, use a 30:2 ratio of compressions to rescue breaths."
+    },
+    {
+        "topic": "Water purification",
+        "keywords": [
+            "water",
+            "purify",
+            "drink",
+            "thirsty",
+            "boil",
+            "filter",
+            "clean water"
+        ],
+        "content": "Water purification: Boiling is the safest method—bring water to a rolling boil for at least 1 minute (3 minutes at higher altitudes). If boiling is not possible, use household bleach (8 drops of unscented 6% bleach per gallon of clear water, let sit for 30 minutes). You can also use water purification tablets or portable microfilters."
+    },
+    {
+        "topic": "Shelter building",
+        "keywords": [
+            "shelter",
+            "cold",
+            "warm",
+            "tent",
+            "tarp",
+            "build",
+            "survive outside",
+            "protect"
+        ],
+        "content": "Building an emergency shelter: Look for natural windbreaks (rocks, dense trees, caves). An A-frame shelter can be built by leaning a sturdy ridgepole between two trees or rocks, then leaning branches against the sides and covering with leaves, moss, or a tarp for insulation and waterproofing. Insulate the floor to prevent heat loss to the ground."
+    },
+    {
+        "topic": "Search and rescue signals",
+        "keywords": [
+            "signal",
+            "rescue",
+            "help",
+            "sos",
+            "lost",
+            "whistle",
+            "mirror"
+        ],
+        "content": "Search and rescue signals: Create a large \"V\" shape on the ground to signal require assistance. Use a signal mirror or shiny object to reflect sunlight towards planes or boats. At night, use a flashlight (three short, three long, three short for SOS) or build three fires in a triangle, which is the international distress signal. A whistle blast rhythm of three is also a universal distress call."
+    }
+]
