@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+<<<<<<< HEAD
 import { Bot, User, Clock, ShieldCheck, Shield, ShieldAlert, Siren, AlertTriangle, Mic, MicOff, Send, Zap } from "lucide-react";
+=======
+import { Send, Bot, User, Zap, Clock, Mic, MicOff, AlertTriangle, ShieldAlert, Shield, ShieldCheck, Siren } from "lucide-react";
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -23,7 +27,11 @@ const SUGGESTIONS = [
 
 const WELCOME_MSG: ChatMessage = {
     role: "assistant",
+<<<<<<< HEAD
     content: `## 🤖 ASTRA Survival Intelligence (Local LLM)\n\nYour **offline AI survival assistant** powered by local retrieval-augmented generation and Ollama.`,
+=======
+    content: `## 🤖 ASTRA Survival Intelligence (Local LLM)\n\nYour **offline AI survival assistant** powered by local retrieval-augmented generation and Ollama.\n\n**Ask me about:**\n- 🏚️ Earthquake, tornado, hurricane survival\n- 🌊 Flood safety & response\n- 🔥 Fire escape procedures\n- 🩹 First aid: bleeding, burns, CPR, fractures\n- 💧 Water purification & 🏕️ Shelter building\n\n*All knowledge stored locally — works without internet.*\n\n> 🛡️ **Emergency Severity Detection** is active — I'll automatically assess threat levels and recommend SOS alerts for critical situations.`,
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
     timestamp: Date.now(),
 };
 
@@ -122,6 +130,10 @@ export function AstraChatbot() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
+<<<<<<< HEAD
+=======
+    // Instantiate the ChatEngine. (Using mistral or phi3 locally)
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
     const chatEngine = useMemo(() => new ChatEngine({ model: "llama3:latest" }), []);
 
     useEffect(() => {
@@ -145,11 +157,20 @@ export function AstraChatbot() {
         setTyping(true);
 
         const assistantMsgIndex = messages.length + 1;
+<<<<<<< HEAD
+=======
+
+        // Add empty assistant message that will be streamed into
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
         setMessages(prev => [...prev, { role: "assistant", content: "", timestamp: Date.now() }]);
 
         try {
             let isCritical = severity.level === 3;
             let isWarning = severity.level === 2;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
             let finalContent = "";
 
             if (isCritical) {
@@ -172,6 +193,10 @@ export function AstraChatbot() {
                     return newMsgs;
                 });
             }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
         } catch (e) {
             console.error(e);
         } finally {
@@ -198,9 +223,15 @@ export function AstraChatbot() {
     const inputSeverity = input.trim() ? detectSeverity(input) : null;
 
     return (
+<<<<<<< HEAD
         <div className="flex flex-col w-full gap-6 animate-fade-in relative z-10 min-h-screen overflow-visible">
             {/* Header */}
             <div className="px-5 py-4 bg-black/40 backdrop-blur-3xl border border-white/[0.05] rounded-xl flex items-center gap-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)] relative z-20">
+=======
+        <div className="flex flex-col h-[calc(100vh-3rem)] animate-fade-in relative z-10 w-full panel-arc">
+            {/* Header */}
+            <div className="px-5 py-4 bg-black/40 backdrop-blur-3xl border-b border-white/[0.05] flex items-center gap-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)] relative z-20">
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                 <div className="relative">
                     <div className="absolute inset-0 rounded-lg border border-info/40 animate-[ping_2s_ease-out_infinite]" />
                     <div className="w-10 h-10 rounded-lg bg-info/10 border border-info/30 flex items-center justify-center shadow-[0_0_15px_hsl(var(--info)/0.3)]">
@@ -209,7 +240,11 @@ export function AstraChatbot() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <h1 className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
+<<<<<<< HEAD
                         AI ASSISTANT <span className="text-[10px] text-info bg-info/10 px-1.5 py-0.5 rounded border border-info/20">v2.0</span>
+=======
+                        ASTRA <span className="text-[10px] text-info bg-info/10 px-1.5 py-0.5 rounded border border-info/20">v2.0</span>
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                     </h1>
                     <p className="text-[10px] text-muted-foreground font-mono mt-0.5 tracking-wider">
                         {ollamaConnected ? "OLLAMA UPLINK ESTABLISHED" : "LOCAL CACHE (OFFLINE)"}
@@ -224,6 +259,7 @@ export function AstraChatbot() {
                 </span>
             </div>
 
+<<<<<<< HEAD
             {/* ASTRA INTRO CARD */}
             {messages.length <= 1 && (
                 <div className="bg-[#0b0b13] border border-white/5 rounded-xl p-6 shadow-lg">
@@ -283,6 +319,16 @@ export function AstraChatbot() {
                             className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
                             {msg.role === "assistant" && (
                                 <div className="w-8 h-8 rounded-lg bg-info/10 border border-info/30 flex items-center justify-center flex-shrink-0 mt-1">
+=======
+            {/* Messages */}
+            <div className="flex-1 overflow-auto p-4 space-y-4">
+                <AnimatePresence initial={false}>
+                    {messages.map((msg, i) => (
+                        <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                            className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : ""}`}>
+                            {msg.role === "assistant" && (
+                                <div className="w-8 h-8 rounded-lg bg-info/10 border border-info/30 flex items-center justify-center flex-shrink-0 mt-1 shadow-glow-info">
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                                     <Bot className="w-4 h-4 text-info" />
                                 </div>
                             )}
@@ -294,7 +340,11 @@ export function AstraChatbot() {
                                 )}
                                 <div className={`px-4 py-3.5 text-sm flex flex-col relative overflow-hidden ${msg.role === "user"
                                     ? "bg-secondary/10 backdrop-blur-md text-secondary-foreground rounded-[1.5rem] rounded-tr-sm shadow-[inset_0_0_15px_theme(colors.secondary.DEFAULT/0.1),0_4px_20px_rgba(0,0,0,0.3)] border border-secondary/20"
+<<<<<<< HEAD
                                     : "bg-black/40 backdrop-blur-3xl border border-white/[0.03] shadow-xl rounded-[1.5rem] rounded-tl-sm"
+=======
+                                    : "bg-black/40 backdrop-blur-3xl border border-white/[0.03] shadow-[inset_0_0_20px_rgba(255,255,255,0.01),0_4px_20px_rgba(0,0,0,0.5)] rounded-[1.5rem] rounded-tl-sm"
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                                     }`}>
                                     {msg.role === "assistant" && (
                                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-info to-transparent opacity-50" />
@@ -312,7 +362,11 @@ export function AstraChatbot() {
                                 </p>
                             </div>
                             {msg.role === "user" && (
+<<<<<<< HEAD
                                 <div className="w-8 h-8 rounded-lg bg-secondary/10 border border-secondary/30 flex items-center justify-center flex-shrink-0 mt-1">
+=======
+                                <div className="w-8 h-8 rounded-lg bg-secondary/10 border border-secondary/30 flex items-center justify-center flex-shrink-0 mt-1 shadow-[0_0_10px_hsl(var(--secondary)/0.3)]">
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                                     <User className="w-4 h-4 text-secondary" />
                                 </div>
                             )}
@@ -322,10 +376,17 @@ export function AstraChatbot() {
 
                 {typing && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+<<<<<<< HEAD
                         <div className="w-8 h-8 rounded-lg bg-info/10 border border-info/30 flex items-center justify-center flex-shrink-0">
                             <Bot className="w-4 h-4 text-info animate-pulse" />
                         </div>
                         <div className="bg-black/40 backdrop-blur-3xl border border-white/[0.03] shadow-xl rounded-[1.5rem] rounded-tl-sm px-5 py-3.5 space-y-1.5 relative min-w-[120px] overflow-hidden">
+=======
+                        <div className="w-8 h-8 rounded-lg bg-info/10 border border-info/30 flex items-center justify-center flex-shrink-0 shadow-glow-info">
+                            <Bot className="w-4 h-4 text-info animate-pulse" />
+                        </div>
+                        <div className="bg-black/40 backdrop-blur-3xl border border-white/[0.03] shadow-[inset_0_0_20px_rgba(255,255,255,0.01),0_4px_20px_rgba(0,0,0,0.5)] rounded-[1.5rem] rounded-tl-sm px-5 py-3.5 space-y-1.5 relative min-w-[120px] overflow-hidden">
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-info to-transparent opacity-50" />
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-4 bg-info animate-pulse shadow-[0_0_8px_hsl(var(--info))]" />
@@ -355,8 +416,13 @@ export function AstraChatbot() {
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 20, opacity: 0 }}
+<<<<<<< HEAD
                         className={`bg-black/40 backdrop-blur-3xl border shadow-xl rounded-[1.5rem] p-4 flex items-center gap-4 ${inputSeverity.level === 3
                             ? "border-emergency/30"
+=======
+                        className={`mx-4 mb-2 bg-black/40 backdrop-blur-3xl border shadow-[inset_0_0_20px_rgba(255,255,255,0.01),0_4px_20px_rgba(0,0,0,0.5)] rounded-[1.5rem] p-4 flex items-center gap-4 ${inputSeverity.level === 3
+                            ? "border-emergency/30 shadow-[inset_0_0_20px_theme(colors.emergency.DEFAULT/0.1)]"
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                             : "border-warning/30"
                             }`}
                     >
@@ -385,10 +451,34 @@ export function AstraChatbot() {
                 )}
             </AnimatePresence>
 
+<<<<<<< HEAD
             {/* Input Bar */}
             <div className="bg-black/80 backdrop-blur-3xl border border-white/[0.05] p-5 relative z-30 rounded-2xl shadow-2xl">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-info/50 to-transparent" />
                 <form onSubmit={e => { e.preventDefault(); send(input); }} className="flex gap-3 items-center w-full">
+=======
+            {/* Suggestion chips */}
+            {messages.length <= 1 && (
+                <div className="px-5 pb-3 z-10 w-full max-w-full overflow-x-auto no-scrollbar bg-black/60 backdrop-blur-3xl border-t border-white/[0.05] pt-4">
+                    <p className="text-[10px] text-info uppercase font-mono tracking-widest mb-3 font-bold flex items-center gap-2">
+                        <Zap className="w-3 h-3" /> Quick Query Protocols
+                    </p>
+                    <div className="flex flex-row gap-2 flex-nowrap w-max">
+                        {SUGGESTIONS.map(s => (
+                            <button key={s.label} onClick={() => send(s.query)}
+                                className="text-[11px] font-mono tracking-wide bg-secondary/10 border border-secondary/30 rounded px-4 py-2 text-secondary hover:bg-secondary/20 hover:shadow-[0_0_15px_hsl(var(--secondary)/0.2)] transition-all whitespace-nowrap">
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Input */}
+            <div className="bg-black/80 backdrop-blur-3xl border-t border-white/[0.05] p-5 relative z-20">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-info/50 to-transparent" />
+                <form onSubmit={e => { e.preventDefault(); send(input); }} className="flex gap-3 items-center max-w-4xl mx-auto">
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                     <button type="button" onClick={toggleVoice}
                         className={`w-12 h-12 rounded border flex items-center justify-center flex-shrink-0 transition-all ${listening ? "bg-emergency/20 border-emergency/50 text-emergency shadow-[0_0_15px_hsl(var(--emergency)/0.4)] animate-pulse" : "bg-black/50 border-sidebar-border text-muted-foreground hover:text-foreground hover:border-info/50"
                             }`}>
@@ -396,9 +486,15 @@ export function AstraChatbot() {
                     </button>
                     <input value={input} onChange={e => setInput(e.target.value)}
                         placeholder={listening ? "AWAITING AUDIO INPUT..." : "ENTER COMMAND OR SITUATION..."}
+<<<<<<< HEAD
                         className="flex-1 bg-black/50 border border-sidebar-border rounded px-5 py-3 text-sm font-mono tracking-wide text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-info/50 transition-all" />
                     <button type="submit" disabled={!input.trim() || typing}
                         className="w-12 h-12 rounded bg-info/20 border border-info/50 flex items-center justify-center text-info shadow-[0_0_10px_hsl(var(--info)/0.3)] disabled:opacity-30 disabled:border-sidebar-border disabled:text-muted-foreground disabled:shadow-none disabled:bg-black/50 transition-all flex-shrink-0 hover:bg-info hover:text-primary-foreground">
+=======
+                        className="flex-1 bg-black/50 border border-sidebar-border rounded px-5 py-3 text-sm font-mono tracking-wide text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-info/50 focus:shadow-[inset_0_0_10px_hsl(var(--info)/0.2)] transition-all" />
+                    <button type="submit" disabled={!input.trim() || typing}
+                        className="w-12 h-12 rounded bg-info/20 border border-info/50 flex items-center justify-center text-info shadow-[0_0_10px_hsl(var(--info)/0.3)] disabled:opacity-30 disabled:border-sidebar-border disabled:text-muted-foreground disabled:shadow-none disabled:bg-black/50 transition-all flex-shrink-0 hover:bg-info hover:text-primary-foreground hover:shadow-glow-info">
+>>>>>>> 90334e684ffb1a5506c7d6cf09d9ca5aee246bb7
                         <Send className="w-5 h-5" />
                     </button>
                 </form>

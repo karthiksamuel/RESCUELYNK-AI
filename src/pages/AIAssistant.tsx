@@ -8,6 +8,7 @@ const AIAssistant = () => {
       </div>
     </div>
   );
+
 };
 
 export default AIAssistant;
