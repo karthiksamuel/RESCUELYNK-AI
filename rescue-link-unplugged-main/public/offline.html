@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RescueLink – Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #070b14;
+            color: #e2e8f0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: rgba(255, 59, 59, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 40px rgba(255, 59, 59, 0.2);
+        }
+
+        .icon svg {
+            width: 40px;
+            height: 40px;
+            color: #ff3b3b;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            background: linear-gradient(135deg, #ff3b3b, #ff6b6b, #00ffff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 0.875rem;
+            color: #64748b;
+            max-width: 300px;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        button {
+            background: #ff3b3b;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(255, 59, 59, 0.25);
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+
+        .status {
+            position: fixed;
+            bottom: 2rem;
+            font-size: 0.7rem;
+            color: #475569;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .status::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff3b3b;
+            margin-right: 6px;
+            box-shadow: 0 0 6px #ff3b3b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
+        </svg>
+    </div>
+    <h1>RESCUELINK OFFLINE</h1>
+    <p>You are currently offline. The app will automatically reconnect when your network is available.</p>
+    <button onclick="window.location.reload()">Try Again</button>
+    <div class="status">System Offline • Mesh Standby</div>
+</body>
+
+</html>

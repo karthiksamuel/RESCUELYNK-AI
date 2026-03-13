@@ -1,0 +1,36 @@
+{
+  "name": "RescueLink – Offline Disaster SOS & AI Survival Assistant",
+  "short_name": "RescueLink",
+  "description": "Offline disaster SOS system with AI survival guidance, connecting victims and rescue teams even without internet.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070b14",
+  "theme_color": "#ff3b3b",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/screenshot-mobile.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ]
+}
