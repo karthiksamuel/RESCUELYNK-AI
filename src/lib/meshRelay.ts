@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { SOSAlert } from "./alertStore";
+import { getLoRaNodes } from "./loraRelay";
+import { getDroneNodes } from "./droneRelay";
 
 export interface MeshNode {
   id: string;
@@ -14,6 +16,7 @@ export interface RelayEvent {
   fromNode: string;
   toNode: string;
   hop: number;
+  hopType: "device-hop" | "drone-hop" | "lora-hop";
   timestamp: number;
   ttl: number;
   delivered: boolean;
@@ -120,7 +123,7 @@ export function simulateRelay(
     // ── Duplicate check ──
     if (processedMessages.has(alert.id)) {
       onStep?.({
-        event: { alertId: alert.id, alertName: alert.name, fromNode: "This Device", toNode: "-", hop: 0, timestamp: Date.now(), ttl: 0, delivered: false },
+        event: { alertId: alert.id, alertName: alert.name, fromNode: "This Device", toNode: "-", hop: 0, hopType: "device-hop", timestamp: Date.now(), ttl: 0, delivered: false },
         label: `Duplicate SOS detected — already relayed`,
         status: "duplicate",
       });
@@ -131,16 +134,34 @@ export function simulateRelay(
     notifyMesh();
 
     const events: RelayEvent[] = [];
-    const maxHops = 3 + Math.floor(Math.random() * 3); // 3-5 hops
+    const deviceHops = 1 + Math.floor(Math.random() * 2); // 1-2 device hops
     const nodes = [...meshNodes].sort(() => Math.random() - 0.5);
-    let currentTTL = 6;
+    const droneNodes = getDroneNodes().filter(n => n.relayStatus === "active");
+    const loraNodes = getLoRaNodes()
+      .filter(n => n.relayStatus === "active")
+      .sort((a, b) => {
+        // Priority 1: Distance to alarm
+        const distA = Math.sqrt(Math.pow(a.latitude - alert.latitude, 2) + Math.pow(a.longitude - alert.longitude, 2));
+        const distB = Math.sqrt(Math.pow(b.latitude - alert.latitude, 2) + Math.pow(b.longitude - alert.longitude, 2));
+        if (Math.abs(distA - distB) > 0.1) return distA - distB;
+        // Priority 2: Signal Strength
+        return b.signalStrength - a.signalStrength;
+      });
+    let currentTTL = 10;
 
     let i = 0;
+    let relayPhase: "mesh" | "drone" | "lora" | "final" = "mesh";
+    let loraIdx = 0;
+    let droneIdx = 0;
+
     const step = () => {
-      // ── TTL check ──
       if (currentTTL <= 0) {
         onStep?.({
-          event: { alertId: alert.id, alertName: alert.name, fromNode: nodes[i - 1]?.name ?? "Device", toNode: "-", hop: i, timestamp: Date.now(), ttl: 0, delivered: false },
+          event: { 
+            alertId: alert.id, alertName: alert.name, fromNode: "System", toNode: "-", 
+            hop: i, hopType: relayPhase === "lora" || relayPhase === "final" ? "lora-hop" : relayPhase === "drone" ? "drone-hop" : "device-hop", 
+            timestamp: Date.now(), ttl: 0, delivered: false 
+          },
           label: `TTL expired — propagation stopped`,
           status: "ttl_expired",
         });
@@ -148,15 +169,147 @@ export function simulateRelay(
         return;
       }
 
-      if (i >= maxHops || i >= nodes.length - 1) {
-        // Final step: delivered to rescue center
+      // Phase 1: Bluetooth Mesh Hops
+      if (relayPhase === "mesh") {
+        if (i < deviceHops && i < nodes.length) {
+          currentTTL--;
+          const fromNode = i === 0 ? "This Device" : nodes[i - 1].name;
+          const toNode = nodes[i].name;
+          const event: RelayEvent = {
+            alertId: alert.id,
+            alertName: alert.name,
+            fromNode,
+            toNode,
+            hop: i + 1,
+            hopType: "device-hop",
+            timestamp: Date.now(),
+            ttl: currentTTL,
+            delivered: false,
+          };
+          events.push(event);
+          relayLog = [event, ...relayLog].slice(0, 50);
+          notifyMesh();
+
+          onStep?.({
+            event,
+            label: i === 0 
+              ? `Mesh: ${toNode} received alert (Short Range)` 
+              : `Mesh: ${fromNode} → ${toNode}`,
+            status: i === 0 ? "received" : "forwarded",
+          });
+
+          i++;
+          setTimeout(step, 800);
+          return;
+        } else {
+          relayPhase = droneNodes.length > 0 ? "drone" : "lora";
+          onStep?.({
+            event: { 
+              alertId: alert.id, alertName: alert.name, fromNode: "Local Mesh", toNode: relayPhase === "drone" ? "Drone Relay" : "LoRa Gateway", 
+              hop: i, hopType: relayPhase === "drone" ? "drone-hop" : "lora-hop", timestamp: Date.now(), ttl: currentTTL, delivered: false 
+            },
+            label: relayPhase === "drone" ? `⤧ Escalating to Aerial Drone Relay...` : `⤧ Escalating to LoRa Long-Range Relay...`,
+            status: "forwarded",
+          });
+          setTimeout(step, 1000);
+          return;
+        }
+      }
+
+      // Phase 2: Drone Relay Hops
+      if (relayPhase === "drone") {
+        if (droneIdx < droneNodes.length) {
+          currentTTL--;
+          const targetDrone = droneNodes[droneIdx];
+          const fromLabel = droneIdx === 0 ? "Mesh Gateway" : droneNodes[droneIdx - 1].droneId;
+
+          const event: RelayEvent = {
+            alertId: alert.id,
+            alertName: alert.name,
+            fromNode: fromLabel,
+            toNode: targetDrone.droneId,
+            hop: i + 1,
+            hopType: "drone-hop",
+            timestamp: Date.now(),
+            ttl: currentTTL,
+            delivered: false,
+          };
+          events.push(event);
+          relayLog = [event, ...relayLog].slice(0, 50);
+          notifyMesh();
+
+          onStep?.({
+            event,
+            label: `Drone: ${targetDrone.droneId} (Alt: ${targetDrone.altitude}m)`,
+            status: "forwarded",
+          });
+
+          i++;
+          droneIdx++;
+          setTimeout(step, 1200);
+          return;
+        } else {
+          relayPhase = "lora";
+          onStep?.({
+            event: { 
+              alertId: alert.id, alertName: alert.name, fromNode: "Drone Network", toNode: "LoRa Gateway", 
+              hop: i, hopType: "lora-hop", timestamp: Date.now(), ttl: currentTTL, delivered: false 
+            },
+            label: `⤧ Transitioning to LoRa Backbone...`,
+            status: "forwarded",
+          });
+          setTimeout(step, 1000);
+          return;
+        }
+      }
+
+      // Phase 3: LoRa Relay Hops
+      if (relayPhase === "lora") {
+        if (loraIdx < loraNodes.length) {
+          currentTTL--;
+          const targetLoRa = loraNodes[loraIdx];
+          const fromLabel = loraIdx === 0 ? (droneNodes.length > 0 ? "Drone Gateway" : "Mesh Gateway") : loraNodes[loraIdx - 1].nodeId;
+          
+          const event: RelayEvent = {
+            alertId: alert.id,
+            alertName: alert.name,
+            fromNode: fromLabel,
+            toNode: targetLoRa.nodeId,
+            hop: i + 1,
+            hopType: "lora-hop",
+            timestamp: Date.now(),
+            ttl: currentTTL,
+            delivered: false,
+          };
+          events.push(event);
+          relayLog = [event, ...relayLog].slice(0, 50);
+          notifyMesh();
+
+          onStep?.({
+            event,
+            label: `LoRa: ${targetLoRa.nodeId} (Range: ${targetLoRa.coverageRadius}km)`,
+            status: "forwarded",
+          });
+
+          i++;
+          loraIdx++;
+          setTimeout(step, 1500); // LoRa takes longer
+          return;
+        } else {
+          relayPhase = "final";
+        }
+      }
+
+      // Final Delivery
+      if (relayPhase === "final") {
         currentTTL--;
         const finalEvent: RelayEvent = {
           alertId: alert.id,
           alertName: alert.name,
-          fromNode: nodes[Math.min(i - 1, nodes.length - 1)]?.name ?? "Device",
-          toNode: "Rescue Node",
+          fromNode: loraNodes[loraNodes.length - 1]?.nodeId ?? (droneNodes[droneNodes.length - 1]?.droneId ?? "Relay Node"),
+          toNode: "Command Center",
           hop: i + 1,
+          hopType: "lora-hop",
           timestamp: Date.now(),
           ttl: currentTTL,
           delivered: true,
@@ -164,43 +317,14 @@ export function simulateRelay(
         events.push(finalEvent);
         relayLog = [finalEvent, ...relayLog].slice(0, 50);
         notifyMesh();
+
         onStep?.({
           event: finalEvent,
-          label: `✓ Alert delivered to rescue center (TTL: ${currentTTL})`,
+          label: `✓ SOS delivered to Command Center via Hybrid Network`,
           status: "delivered",
         });
         resolve(events);
-        return;
       }
-
-      currentTTL--;
-      const fromNode = i === 0 ? "This Device" : nodes[i - 1].name;
-      const toNode = nodes[i].name;
-      const event: RelayEvent = {
-        alertId: alert.id,
-        alertName: alert.name,
-        fromNode,
-        toNode,
-        hop: i + 1,
-        timestamp: Date.now(),
-        ttl: currentTTL,
-        delivered: false,
-      };
-      events.push(event);
-      relayLog = [event, ...relayLog].slice(0, 50);
-      notifyMesh();
-
-      const isFirst = i === 0;
-      onStep?.({
-        event,
-        label: isFirst
-          ? `${toNode} received alert (TTL: ${currentTTL})`
-          : `${fromNode} → ${toNode} (TTL: ${currentTTL})`,
-        status: isFirst ? "received" : "forwarded",
-      });
-
-      i++;
-      setTimeout(step, 1000 + Math.random() * 1000);
     };
     setTimeout(step, 500);
   });

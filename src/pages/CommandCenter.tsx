@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle, Radio, MapPin, Signal, Users, Activity, Bluetooth,
   ArrowRight, Shield, Navigation, ChevronRight, Bot, Send, Zap,
-  Eye, Crosshair, Clock, Flame, Droplets, Mountain, Heart, Wifi, WifiOff, Truck, CheckCircle, TriangleAlert, Trash2,
+  Eye, Crosshair, Clock, Flame, Droplets, Mountain, Heart, Wifi, WifiOff, Truck, CheckCircle, TriangleAlert, Trash2, Plane,
 } from "lucide-react";
 import DisasterSimulationModal from "@/components/DisasterSimulationModal";
 import DisasterRiskPanel, { type RiskLevels } from "@/components/DisasterRiskPanel";
@@ -16,8 +16,11 @@ import { toast } from "sonner";
 import RescueTeamPanel from "@/components/RescueTeamPanel";
 import ResolveAlertDialog from "@/components/ResolveAlertDialog";
 import ResolvedIncidentsPanel from "@/components/ResolvedIncidentsPanel";
+import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
 import { getSurvivalResponse } from "@/lib/survivalAI";
 import { useRescueTeams, DANGER_ZONES } from "@/lib/rescueTeams";
+import { useLoRaNodes } from "@/lib/loraRelay";
+import { useDroneNodes } from "@/lib/droneRelay";
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -58,6 +61,8 @@ export default function CommandCenter() {
   const [lng] = useState(120.9842);
   const [simOpen, setSimOpen] = useState(false);
   const [risks, setRisks] = useState<RiskLevels>({ earthquake: "Low", flood: "Low", fire: "Low", storm: "Low" });
+  const loraNodes = useLoRaNodes();
+  const { nodes: droneNodes, deployed: dronesDeployed, toggleDroneDeployment } = useDroneNodes();
 
   const handleSimulated = useCallback((riskKey: string) => {
     setRisks(prev => ({ ...prev, [riskKey]: "High" }));
@@ -87,9 +92,10 @@ export default function CommandCenter() {
 
       {/* Seamless Floating Metrics */}
       <div className="flex flex-col xl:flex-row gap-6 mb-10 relative z-10 px-2 mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 flex-1">
           {[
             { label: "Active SOS Alerts", value: alerts.length, icon: AlertTriangle, color: "emergency", desc: "Unsecured signals" },
+            { label: "Critical Priority", value: alerts.filter(a => a.severity === "CRITICAL").length, icon: Shield, color: "emergency", desc: "Life Threatening" },
             { label: "Rescue Teams Deployed", value: rescueTeams.length, icon: Truck, color: "info", desc: "Active units" },
             { label: "System Connectivity", value: isOnline ? "Online" : "Offline", icon: isOnline ? Wifi : WifiOff, color: isOnline ? "safe" : "warning", desc: `${nodes.length} Mesh Nodes` },
           ].map((m, i) => (
@@ -110,15 +116,9 @@ export default function CommandCenter() {
             </motion.div>
           ))}
         </div>
-
         {/* Sim Controls */}
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
           className="flex gap-4 justify-center shrink-0 items-center border-l border-white/[0.03] pl-6 ml-2">
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setSimOpen(true)}
-            className="h-12 px-6 rounded-full bg-warning/10 hover:bg-warning/20 flex items-center gap-2 shadow-[0_0_15px_theme(colors.warning.DEFAULT/0.15)] transition-colors group z-10">
-            <TriangleAlert className="w-5 h-5 text-warning group-hover:animate-pulse group-hover:drop-shadow-[0_0_8px_theme(colors.warning.DEFAULT/0.8)]" />
-            <span className="text-xs font-semibold text-warning">Simulate</span>
-          </motion.button>
           <AnimatePresence>
             {Object.values(risks).some(r => r !== "Low") && (
               <motion.button initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={clearSimulation}
@@ -127,6 +127,14 @@ export default function CommandCenter() {
               </motion.button>
             )}
           </AnimatePresence>
+
+          {/* Drone Deployment Toggle */}
+          <motion.button initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={toggleDroneDeployment}
+            className={`h-12 px-6 rounded-full flex items-center gap-2 transition-all group z-10 ${dronesDeployed ? "bg-info/20 text-info border border-info/30" : "bg-white/5 text-muted-foreground border border-white/5 hover:bg-white/10"}`}>
+            <Plane className={`w-5 h-5 ${dronesDeployed ? "animate-bounce" : ""}`} />
+            <span className="text-xs font-bold uppercase tracking-widest">{dronesDeployed ? "Drones Active" : "Deploy Drones"}</span>
+          </motion.button>
         </motion.div>
       </div>
 
@@ -156,7 +164,7 @@ export default function CommandCenter() {
         </div>
 
         <div className="absolute inset-0 z-0">
-          <EmergencyMap alerts={alerts} teams={rescueTeams} dangerZones={DANGER_ZONES} />
+          <EmergencyMap alerts={alerts} teams={rescueTeams} dangerZones={DANGER_ZONES} loraNodes={loraNodes} droneNodes={droneNodes} />
         </div>
       </motion.div>
 
@@ -189,6 +197,11 @@ export default function CommandCenter() {
               <AnimatePresence>
                 {alerts.map((alert, i) => {
                   const statusColor = alert.status === "responding" ? "warning" : "emergency";
+                  const priorityColor = 
+                    alert.severity === "CRITICAL" ? "emergency" : 
+                    alert.severity === "HIGH" ? "warning" : 
+                    alert.severity === "MEDIUM" ? "info" : "safe";
+                  
                   return (
                     <motion.div key={alert.id} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 10, opacity: 0, height: 0 }}
                       className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-start gap-3 hover:bg-white/10 transition-colors group">
@@ -199,6 +212,11 @@ export default function CommandCenter() {
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <span className="text-sm font-semibold text-foreground truncate">{alert.name}</span>
                           <div className="flex items-center gap-2 shrink-0">
+                            {alert.severity && (
+                              <span className={`text-[10px] font-bold rounded-full bg-${priorityColor}/10 text-${priorityColor} px-2 py-0.5 border border-${priorityColor}/20 uppercase tracking-tighter`}>
+                                {alert.severity}
+                              </span>
+                            )}
                             <span className={`text-[10px] font-medium rounded-full bg-${statusColor}/10 text-${statusColor} px-2 py-0.5 border border-${statusColor}/20`}>
                               {alert.status === "responding" ? "Responding" : "Active"}
                             </span>
@@ -270,7 +288,197 @@ export default function CommandCenter() {
             </form>
           </motion.div>
 
+          {/* Aerial Relay Network Monitoring Panel */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+            className="bg-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] p-7 flex flex-col border border-white/[0.05] shadow-[inset_0_0_40px_rgba(255,255,255,0.02),0_15px_50px_rgba(0,0,0,0.4)] overflow-hidden relative">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/30 to-transparent pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-[1.25rem] bg-secondary/10 flex items-center justify-center border border-secondary/20 shadow-[0_0_20px_theme(colors.secondary.DEFAULT/0.2)]">
+                  <Plane className={`w-6 h-6 text-secondary ${dronesDeployed ? "animate-pulse" : "opacity-30"}`} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-foreground uppercase tracking-widest">Aerial Relay</h3>
+                  <p className="text-[10px] text-secondary font-mono font-bold">DRONE MESH {dronesDeployed ? "ACTIVE" : "STANDBY"}</p>
+                </div>
+              </div>
+              <span className={`text-[10px] font-black px-4 py-2 rounded-full border tracking-widest ${dronesDeployed ? "bg-secondary/20 text-secondary border-secondary/30" : "bg-white/5 text-muted-foreground border-white/10"}`}>
+                {dronesDeployed ? `${droneNodes.length} UNITS` : "OFFLINE"}
+              </span>
+            </div>
+
+            <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar min-h-[150px]">
+              {!dronesDeployed ? (
+                <div className="flex flex-col items-center justify-center h-full opacity-40 text-center py-8">
+                  <Plane className="w-12 h-12 text-muted-foreground mb-4" />
+                  <p className="text-xs font-bold uppercase tracking-widest">No Active Drones</p>
+                  <p className="text-[10px] mt-2">Deploy aerial relays to extend network range</p>
+                </div>
+              ) : (
+                droneNodes.map((drone) => (
+                  <div key={drone.droneId} className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 transition-all hover:bg-white/[0.06] group cursor-default">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full bg-secondary animate-pulse`} />
+                        <span className="text-xs font-bold text-foreground tracking-wide">{drone.droneId}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-muted-foreground">{drone.altitude}m ALT</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] text-muted-foreground uppercase font-bold tracking-tighter">
+                          <span>Battery</span>
+                          <span className={drone.batteryLevel < 20 ? "text-emergency" : "text-safe"}>{drone.batteryLevel}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${drone.batteryLevel}%` }} className={`h-full ${drone.batteryLevel < 20 ? "bg-emergency" : "bg-safe"}`} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] text-muted-foreground uppercase font-bold tracking-tighter">
+                          <span>Range</span>
+                          <span className="text-secondary">{drone.coverageRadius}km</span>
+                        </div>
+                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${(drone.coverageRadius/20)*100}%` }} className="h-full bg-secondary" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+
           <ResolvedIncidentsPanel />
+
+          {/* LoRa Network Monitoring Panel */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+            className="bg-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] p-7 flex flex-col border border-white/[0.05] shadow-[inset_0_0_40px_rgba(255,255,255,0.02),0_15px_50px_rgba(0,0,0,0.4)] overflow-hidden relative">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-info/30 to-transparent pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-[1.25rem] bg-info/10 flex items-center justify-center border border-info/20 shadow-[0_0_20px_theme(colors.info.DEFAULT/0.2)]">
+                  <Radio className="w-6 h-6 text-info animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-foreground uppercase tracking-widest">Long-Range Comms</h3>
+                  <p className="text-[10px] text-info font-mono font-bold">LORA RELAY NETWORK ACTIVE</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-black bg-info/20 text-info px-4 py-2 rounded-full border border-info/30 tracking-widest">{loraNodes.filter(n => n.relayStatus === "active").length} ACTIVE</span>
+            </div>
+
+            <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar">
+              {loraNodes.map((node) => {
+                const connectedTeams = rescueTeams.filter(t => {
+                  const dist = Math.sqrt(Math.pow(t.latitude - node.latitude, 2) + Math.pow(t.longitude - node.longitude, 2)) * 111; // Approx km
+                  return dist <= node.coverageRadius;
+                });
+
+                return (
+                  <div key={node.nodeId} className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 transition-all hover:bg-white/[0.06] group cursor-default">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${node.relayStatus === "active" ? "bg-safe animate-pulse" : "bg-muted"}`} />
+                        <span className="text-xs font-bold text-foreground tracking-wide">{node.nodeId}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-muted-foreground">{node.coverageRadius}km RANGE</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] text-muted-foreground uppercase font-bold tracking-tighter">
+                          <span>Power</span>
+                          <span className={node.batteryLevel < 20 ? "text-emergency" : "text-safe"}>{node.batteryLevel}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${node.batteryLevel}%` }} className={`h-full ${node.batteryLevel < 20 ? "bg-emergency" : "bg-safe"}`} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] text-muted-foreground uppercase font-bold tracking-tighter">
+                          <span>Signal</span>
+                          <span className="text-info">{node.signalStrength}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${node.signalStrength}%` }} className="h-full bg-info" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {connectedTeams.length > 0 && (
+                      <div className="pt-2 border-t border-white/5">
+                        <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest mb-1.5">Connected Units</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {connectedTeams.map(team => (
+                            <div key={team.id} className="flex items-center gap-1.5 bg-info/5 border border-info/10 rounded-full px-2 py-0.5">
+                              <Truck className="w-2.5 h-2.5 text-info" />
+                              <span className="text-[9px] font-bold text-info/80 tracking-tight">{team.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="w-3.5 h-3.5 text-info" />
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">Network Health</span>
+              </div>
+              <span className="text-[10px] font-black text-safe uppercase tracking-widest">Optimal</span>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* DISASTER CONTROL PANEL & NETWORK MONITOR */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+          className="xl:col-span-1 bg-black/40 backdrop-blur-3xl border border-white/[0.05] rounded-[2rem] p-6 shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]">
+          <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-emergency drop-shadow-[0_0_8px_theme(colors.emergency.DEFAULT/0.8)]" />
+              <h3 className="text-base font-black text-foreground uppercase tracking-widest">Disaster Control</h3>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {[
+              { label: "Active SOS Alerts", value: alerts.length, status: alerts.length > 5 ? "Critical" : "Stable", color: alerts.length > 5 ? "emergency" : "safe" },
+              { label: "Critical Priority", value: alerts.filter(a => a.severity === "CRITICAL").length, status: alerts.filter(a => a.severity === "CRITICAL").length > 0 ? "Urgent" : "None", color: alerts.filter(a => a.severity === "CRITICAL").length > 0 ? "emergency" : "safe" },
+              { label: "Rescue Units", value: `${rescueTeams.filter(t => t.status === "Available").length} / ${rescueTeams.length}`, status: "Units Online", color: "info" },
+              { label: "Deployable Drones", value: droneNodes.length, status: dronesDeployed ? "In Flight" : "Standby", color: "secondary" },
+            ].map(stat => (
+              <div key={stat.label} className="bg-white/5 border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">{stat.label}</p>
+                  <p className="text-xl font-black text-foreground">{stat.value}</p>
+                </div>
+                <div className="text-right">
+                  <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded bg-${stat.color}/10 text-${stat.color} border border-${stat.color}/20`}>
+                    {stat.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <div className="xl:col-span-2">
+          <NetworkStatusMonitor metrics={{
+            meshNodes: nodes.length,
+            droneRelays: droneNodes.length,
+            loraNodes: loraNodes.length,
+            avgHops: relayLog.length > 0 ? relayLog.reduce((acc, log) => acc + (log.hop || 0), 0) / relayLog.length : 1.2,
+            coverageArea: 450 + (droneNodes.length * 120) + (loraNodes.length * 80)
+          }} />
         </div>
       </div>
     </div>

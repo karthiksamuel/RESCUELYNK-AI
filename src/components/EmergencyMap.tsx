@@ -4,7 +4,9 @@ import L from "leaflet";
 import type { SOSAlert } from "@/lib/alertStore";
 import type { RescueTeam, DangerZone } from "@/lib/rescueTeams";
 import { useOnlineStatus } from "@/hooks/use-online-status";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, Radio, Plane } from "lucide-react";
+import { type LoRaNode } from "@/lib/loraRelay";
+import { type DroneNode } from "@/lib/droneRelay";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,26 +15,32 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-const redIcon = new L.Icon({
+const victimIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
 
-const blueIcon = new L.Icon({
+const rescueIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
 
-const yellowIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png",
+const loraIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
 
-const greenIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+const droneIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
+});
+
+const shelterIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
@@ -69,6 +77,8 @@ interface Props {
   alerts: SOSAlert[];
   teams?: RescueTeam[];
   dangerZones?: DangerZone[];
+  loraNodes?: LoRaNode[];
+  droneNodes?: DroneNode[];
 }
 
 const statusColor: Record<string, string> = {
@@ -77,7 +87,13 @@ const statusColor: Record<string, string> = {
   "Responding": "hsl(0 84% 56%)",
 };
 
-export default function EmergencyMap({ alerts, teams = [], dangerZones = [] }: Props) {
+export const SAFE_SHELTERS = [
+  { id: "S-1", name: "Central High School", latitude: 14.5900, longitude: 120.9900, capacity: 500 },
+  { id: "S-2", name: "Green Valley Plaza", latitude: 14.5750, longitude: 121.0100, capacity: 300 },
+  { id: "S-3", name: "East Metro Stadium", latitude: 14.6100, longitude: 121.0300, capacity: 1200 },
+];
+
+export default function EmergencyMap({ alerts, teams = [], dangerZones = [], loraNodes = [], droneNodes = [] }: Props) {
   const isOnline = useOnlineStatus();
   const center: [number, number] = [14.58, 121.0];
   const [navRoute, setNavRoute] = useState<{ from: [number, number]; to: [number, number]; dist: number; eta: number } | null>(null);
@@ -112,7 +128,7 @@ export default function EmergencyMap({ alerts, teams = [], dangerZones = [] }: P
         ))}
 
         {dangerZones.map((dz) => (
-          <Marker key={`dz-m-${dz.id}`} position={[dz.latitude, dz.longitude]} icon={yellowIcon}>
+          <Marker key={`dz-m-${dz.id}`} position={[dz.latitude, dz.longitude]} icon={shelterIcon}>
             <Popup>
               <div className="text-sm space-y-1">
                 <p className="font-bold" style={{ color: "hsl(38 92% 50%)" }}>⚠ {dz.label}</p>
@@ -122,11 +138,24 @@ export default function EmergencyMap({ alerts, teams = [], dangerZones = [] }: P
           </Marker>
         ))}
 
+        {/* Safe Shelters */}
+        {SAFE_SHELTERS.map((s) => (
+          <Marker key={s.id} position={[s.latitude, s.longitude]} icon={shelterIcon}>
+            <Popup>
+              <div className="text-sm space-y-1">
+                <p className="font-bold text-safe">🟢 Safe Shelter: {s.name}</p>
+                <p className="text-xs">Capacity: {s.capacity} persons</p>
+                <p className="text-[10px] text-muted-foreground">📍 {s.latitude.toFixed(4)}, {s.longitude.toFixed(4)}</p>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
         {/* SOS victim markers */}
         {alerts.map((alert) => {
           const isSimulation = alert.name.startsWith("[SIMULATION]");
           return (
-            <Marker key={alert.id} position={[alert.latitude, alert.longitude]} icon={redIcon}>
+            <Marker key={alert.id} position={[alert.latitude, alert.longitude]} icon={victimIcon}>
               <Popup>
                 <div className="text-sm space-y-1.5" style={{ minWidth: 180 }}>
                   <p className="font-bold" style={{ color: "hsl(0 85% 50%)" }}>🆘 {alert.name}</p>
@@ -167,7 +196,7 @@ export default function EmergencyMap({ alerts, teams = [], dangerZones = [] }: P
 
         {/* Rescue team markers */}
         {teams.map((team) => (
-          <Marker key={team.id} position={[team.latitude, team.longitude]} icon={blueIcon}>
+          <Marker key={team.id} position={[team.latitude, team.longitude]} icon={rescueIcon}>
             <Popup>
               <div className="text-sm space-y-1.5" style={{ minWidth: 160 }}>
                 <p className="font-bold" style={{ color: "hsl(217 91% 60%)" }}>🚑 {team.name}</p>
@@ -182,6 +211,92 @@ export default function EmergencyMap({ alerts, teams = [], dangerZones = [] }: P
           </Marker>
         ))}
 
+        {/* LoRa Relay Nodes */}
+        {loraNodes.map((node) => (
+          <div key={node.nodeId}>
+            <Circle 
+              center={[node.latitude, node.longitude]} 
+              radius={15000} // LoRa coverage: 15km
+              pathOptions={{ 
+                color: node.relayStatus === "active" ? "hsl(152 70% 48%)" : "hsl(0 0% 50%)", 
+                fillColor: node.relayStatus === "active" ? "hsl(152 70% 48%)" : "hsl(0 0% 50%)", 
+                fillOpacity: 0.05, 
+                weight: 1,
+                dashArray: "5, 5"
+              }}
+            />
+            <Marker position={[node.latitude, node.longitude]} icon={loraIcon}>
+              <Popup>
+                <div className="text-sm space-y-1.5" style={{ minWidth: 160 }}>
+                  <p className="font-bold" style={{ color: "hsl(152 70% 48%)" }}>📡 LoRa Node: {node.nodeId}</p>
+                  <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                    <div className="bg-white/5 p-1 rounded">
+                      <p className="text-muted-foreground uppercase">Power</p>
+                      <p className={node.batteryLevel < 20 ? "text-emergency" : "text-safe"}>{node.batteryLevel}%</p>
+                    </div>
+                    <div className="bg-white/5 p-1 rounded">
+                      <p className="text-muted-foreground uppercase">Signal</p>
+                      <p className="text-info">{node.signalStrength}%</p>
+                    </div>
+                  </div>
+                  <p className="text-xs">Coverage: <strong>{node.coverageRadius} km</strong></p>
+                  <p className="text-xs">Status: <strong className={node.relayStatus === "active" ? "text-safe" : "text-muted-foreground uppercase"}>{node.relayStatus}</strong></p>
+                </div>
+              </Popup>
+            </Marker>
+          </div>
+        ))}
+
+        {/* Drone Relay Nodes */}
+        {droneNodes.map((node) => (
+          <div key={node.droneId}>
+            <Circle 
+              center={[node.latitude, node.longitude]} 
+              radius={20000} // Drone coverage: 20km
+              pathOptions={{ 
+                color: "hsl(217 91% 60%)", 
+                fillColor: "hsl(217 91% 60%)", 
+                fillOpacity: 0.05, 
+                weight: 1,
+                dashArray: "10, 5"
+              }}
+            />
+            <Marker position={[node.latitude, node.longitude]} icon={droneIcon}>
+              <Popup>
+                <div className="text-sm space-y-2" style={{ minWidth: 180 }}>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-info/10 rounded-lg">
+                      <Radio className="w-4 h-4 text-info animate-pulse" />
+                    </div>
+                    <p className="font-bold text-info">AERIAL RELAY: {node.droneId}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                      <p className="text-muted-foreground uppercase mb-0.5">Battery</p>
+                      <p className={node.batteryLevel < 20 ? "text-emergency" : "text-safe"}>{node.batteryLevel}%</p>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                      <p className="text-muted-foreground uppercase mb-0.5">Altitude</p>
+                      <p className="text-info">{node.altitude}m</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase">
+                      <span>Coverage</span>
+                      <span className="text-foreground font-bold">{node.coverageRadius}km</span>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-info" style={{ width: `${(node.coverageRadius / 20) * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          </div>
+        ))}
+
         {/* Navigation route line */}
         {navRoute && (
           <>
@@ -189,7 +304,7 @@ export default function EmergencyMap({ alerts, teams = [], dangerZones = [] }: P
               positions={[navRoute.from, navRoute.to]}
               pathOptions={{ color: "hsl(217 91% 60%)", weight: 3, dashArray: "8 6", opacity: 0.8 }}
             />
-            <Marker position={navRoute.from} icon={greenIcon}>
+            <Marker position={navRoute.from} icon={rescueIcon}>
               <Popup>
                 <div className="text-sm">
                   <p className="font-bold" style={{ color: "hsl(152 70% 48%)" }}>📍 Rescuer Position</p>

@@ -11,6 +11,7 @@ export interface OfflineSOSPacket {
   latitude: number;
   longitude: number;
   message: string;
+  severity?: string;
   timestamp: number;
   ttl: number;
   delivered: boolean;
@@ -60,6 +61,7 @@ export function enqueueOfflineSOS(data: {
   latitude: number;
   longitude: number;
   message: string;
+  severity?: string;
 }): OfflineSOSPacket {
   const packet: OfflineSOSPacket = {
     id: `SOS-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -68,6 +70,7 @@ export function enqueueOfflineSOS(data: {
     latitude: data.latitude,
     longitude: data.longitude,
     message: data.message,
+    severity: data.severity,
     timestamp: Date.now(),
     ttl: 6,
     delivered: false,

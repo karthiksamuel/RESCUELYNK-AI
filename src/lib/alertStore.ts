@@ -16,6 +16,8 @@ export interface SOSAlert {
   status: AlertStatus;
   relay_count: number;
   severity: string | null;
+  priorityLevel?: string;
+  priorityColor?: string;
   resolved_at: string | null;
   resolved_by: string | null;
   created_at: string;
@@ -35,6 +37,7 @@ function mapRow(row: any): SOSAlert {
     relayCount: row.relay_count,
     resolvedAt: row.resolved_at,
     resolvedBy: row.resolved_by,
+    priorityLevel: row.severity, // Map severity to priorityLevel for UI
   };
 }
 
@@ -85,6 +88,9 @@ export async function sendAlert(data: {
     userId = user?.id || null;
   }
 
+  const { classifyEmergency } = await import("@/utils/emergencyAI");
+  const classification = classifyEmergency(data.message);
+
   const { data: row, error } = await supabase
     .from("sos_alerts")
     .insert({
@@ -94,6 +100,7 @@ export async function sendAlert(data: {
       message: data.message,
       user_id: userId,
       status: "active",
+      severity: classification.severity,
     })
     .select()
     .single();

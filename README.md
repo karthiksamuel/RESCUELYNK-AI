@@ -28,4 +28,22 @@ The app will be available at `http://localhost:8080`.
 - Role-based access (Citizen, Rescue Team, Command Operator)
 - Offline-first PWA support
 
+### Hybrid Communication Model
+RescueLink utilizes a three-tier communication architecture to ensure SOS alerts reach the Command Center even when traditional infrastructure is completely destroyed.
+
+1.  **Tier 1: Bluetooth Mesh (Short Range)**
+    *   Citizen-to-citizen propagation.
+    *   Range: 50-100m per hop.
+    *   Low power, high resilience.
+2.  **Tier 2: Drone Relay Network (Mid Range)**
+    *   Autonomous aerial communication towers.
+    *   Range: 15-20km per unit.
+    *   Tactical deployment in disaster zones.
+3.  **Tier 3: LoRa Relay Network (Long Range)**
+    *   Strategic backbone communication.
+    *   Range: 100-200km coverage.
+    *   Priority routing based on distance and signal integrity.
+hop count, and signal strength to ensure a stable 100-200km delivery path.
+4. **Command Central Dashboard**: Real-time visualization of the entire relay chain on the tactical operations map.
+
 © RescueLink Disaster Response Platform
