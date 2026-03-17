@@ -1,49 +1,89 @@
-# RescueLink – Offline Disaster SOS & AI Survival Assistant
+# 🚨 RescueLink – AI-Powered Disaster Response System
 
-A smart emergency response platform that connects victims and rescue teams even without internet. AI-powered survival guidance and mesh relay SOS alerts.
+RescueLink is an **offline-first disaster response platform** designed to enable emergency communication, AI-powered survival guidance, and SOS alert transmission during network failures.
 
-## Tech Stack
+It ensures people can **send distress signals and receive help even without internet access**.
 
-- React + TypeScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
-- Leaflet Maps
-- Lovable Cloud (backend)
+---
 
-## Getting Started
+## 🚀 Features
 
-```bash
-npm install
-npm run dev
-```
+- 📡 Offline emergency communication system  
+- 🤖 AI survival assistant (local LLM via Ollama)  
+- 📍 Geolocation-based SOS alerts  
+- 🗺️ Real-time rescue coordination dashboard  
+- 📲 Progressive Web App (PWA) support  
+- 🌐 Works in low or no connectivity environments  
 
-The app will be available at `http://localhost:8080`.
+---
 
-## Features
+## 🛠️ Tech Stack
 
-- SOS alert system with mesh relay
-- AI survival assistant
-- Emergency map with rescue team tracking
-- Role-based access (Citizen, Rescue Team, Command Operator)
-- Offline-first PWA support
+### Frontend
+- React + Vite + TypeScript  
+- Tailwind CSS  
+- Framer Motion  
 
-### Hybrid Communication Model
-RescueLink utilizes a three-tier communication architecture to ensure SOS alerts reach the Command Center even when traditional infrastructure is completely destroyed.
+### Backend / AI
+- Ollama (local LLM)  
+- Node.js / Express (optional backend)  
 
-1.  **Tier 1: Bluetooth Mesh (Short Range)**
-    *   Citizen-to-citizen propagation.
-    *   Range: 50-100m per hop.
-    *   Low power, high resilience.
-2.  **Tier 2: Drone Relay Network (Mid Range)**
-    *   Autonomous aerial communication towers.
-    *   Range: 15-20km per unit.
-    *   Tactical deployment in disaster zones.
-3.  **Tier 3: LoRa Relay Network (Long Range)**
-    *   Strategic backbone communication.
-    *   Range: 100-200km coverage.
-    *   Priority routing based on distance and signal integrity.
-hop count, and signal strength to ensure a stable 100-200km delivery path.
-4. **Command Central Dashboard**: Real-time visualization of the entire relay chain on the tactical operations map.
+### Other
+- Geolocation API  
+- Service Workers (PWA)  
 
+---
+
+## ⚙️ How It Works
+
+1. User triggers SOS alert  
+2. Location is captured automatically  
+3. Alert is broadcasted to nearby nodes  
+4. AI assistant provides survival guidance  
+5. Dashboard displays real-time alerts  
+
+---
+
+## 📡 Advanced Concept
+
+- Simulated **LoRa + Mesh Networking**  
+- Extends communication range up to **100–200 km**  
+- Enables device-to-device emergency communication  
+
+---
+
+## ⚡ Key Highlights
+
+- Works **completely offline**  
+- AI assistance available anytime  
+- Designed for disaster scenarios  
+- Scalable for real-world deployment  
+
+---
+
+## 🔮 Future Scope
+
+- Real LoRa hardware integration  
+- Satellite communication support  
+- Government emergency system integration  
+- Multi-language AI support  
+
+---
+
+## 📸 Screenshots
+
+(Add UI images here)
+
+---
+
+## 🎥 Demo
+
+(Add demo video here)
+
+---
+
+## 👨‍💻 Author
+
+Karthik  
+https://github.com/karthiksamuel
 © RescueLink Disaster Response Platform
