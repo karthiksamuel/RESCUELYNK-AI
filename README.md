@@ -70,17 +70,6 @@ It ensures people can **send distress signals and receive help even without inte
 
 ---
 
-## 📸 Screenshots
-
-(Add UI images here)
-
----
-
-## 🎥 Demo
-
-(Add demo video here)
-
----
 
 ## 👨‍💻 Author
 
