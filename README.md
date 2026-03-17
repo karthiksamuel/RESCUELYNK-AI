@@ -66,7 +66,7 @@ It ensures people can **send distress signals and receive help even without inte
 - Real LoRa hardware integration  
 - Satellite communication support  
 - Government emergency system integration  
-- Multi-language AI support  
+- Multi-language AI support  .
 
 ---
 
